@@ -1,0 +1,13 @@
+{
+  "name": "campus-intelligence-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Unified Campus Intelligence Dashboard with AI Assistant - MARS Open Projects 2026",
+  "scripts": {
+    "install:all": "npm install --prefix mcp-servers/library && npm install --prefix mcp-servers/cafeteria && npm install --prefix mcp-servers/events && npm install --prefix mcp-servers/academics && npm install --prefix backend && npm install --prefix frontend",
+    "dev": "concurrently -n LIBRARY,CAFETERIA,EVENTS,ACADEMICS,BACKEND,FRONTEND -c blue,yellow,magenta,green,red,cyan \"npm start --prefix mcp-servers/library\" \"npm start --prefix mcp-servers/cafeteria\" \"npm start --prefix mcp-servers/events\" \"npm start --prefix mcp-servers/academics\" \"npm start --prefix backend\" \"npm run dev --prefix frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

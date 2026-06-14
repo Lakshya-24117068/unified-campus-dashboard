@@ -1,0 +1,17 @@
+{
+  "name": "events-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server exposing campus club events and calendar data",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "zod": "^3.23.8"
+  }
+}
