@@ -55,7 +55,8 @@ export default function AssistantPanel() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Request failed");
+        const msg = [data.error, data.details].filter(Boolean).join(" — ");
+        throw new Error(msg || `Server error ${res.status}`);
       }
 
       setMessages((prev) => [
@@ -64,13 +65,15 @@ export default function AssistantPanel() {
       ]);
       setHistory(data.history || []);
     } catch (e) {
-      setError(e.message);
+      const serverMsg = e.message && e.message !== "Failed to fetch" ? e.message : null;
+      setError(serverMsg || "Cannot reach backend");
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content:
-            "I couldn't reach the assistant backend. Make sure the orchestrator server is running and ANTHROPIC_API_KEY is set.",
+          content: serverMsg
+            ? `Backend error: ${serverMsg}`
+            : "I couldn't reach the assistant backend. Make sure the orchestrator server is running and GOOGLE_API_KEY is set in backend/.env.",
           toolCalls: [],
           isError: true
         }

@@ -39,7 +39,76 @@ export class CampusMcpManager {
     );
   }
 
-  /** Returns all tools across all connected servers, in Anthropic tool-spec format. */
+  /**
+   * Convert an MCP JSON Schema to a Gemini-compatible Schema object.
+   * Gemini's Schema type is a subset of JSON Schema — it supports
+   * type, description, properties, items, enum, and required.
+   * Unsupported keywords are silently dropped.
+   */
+  _mcpSchemaToGemini(schema) {
+    if (!schema || typeof schema !== "object") {
+      return { type: "object", properties: {} };
+    }
+
+    const gemini = {};
+
+    // Map JSON Schema types to Gemini's uppercase type strings
+    const typeMap = {
+      string:  "STRING",
+      number:  "NUMBER",
+      integer: "INTEGER",
+      boolean: "BOOLEAN",
+      array:   "ARRAY",
+      object:  "OBJECT"
+    };
+
+    if (schema.type) {
+      gemini.type = typeMap[schema.type] ?? schema.type.toUpperCase();
+    } else {
+      gemini.type = "OBJECT";
+    }
+
+    if (schema.description) gemini.description = schema.description;
+    if (schema.enum)        gemini.enum        = schema.enum;
+    if (schema.required)    gemini.required    = schema.required;
+
+    if (schema.properties && typeof schema.properties === "object") {
+      gemini.properties = {};
+      for (const [key, val] of Object.entries(schema.properties)) {
+        gemini.properties[key] = this._mcpSchemaToGemini(val);
+      }
+    }
+
+    if (schema.items) {
+      gemini.items = this._mcpSchemaToGemini(schema.items);
+    }
+
+    return gemini;
+  }
+
+  /**
+   * Returns all tools across all connected servers as Gemini FunctionDeclaration objects.
+   * Tool names are namespaced as "<serverId>__<toolName>" to avoid collisions.
+   */
+  getGeminiTools() {
+    const tools = [];
+    for (const [serverId, entry] of this.clients) {
+      for (const tool of entry.tools) {
+        tools.push({
+          name: `${serverId}__${tool.name}`,
+          description: `[${entry.name}] ${tool.description}`,
+          parameters: this._mcpSchemaToGemini(tool.inputSchema || { type: "object", properties: {} })
+        });
+      }
+    }
+    return tools;
+  }
+
+  /**
+   * Returns all tools in Anthropic tool-spec format (kept for backwards
+   * compatibility with any callers that have not yet migrated).
+   * @deprecated Use getGeminiTools() instead.
+   */
   getAnthropicTools() {
     const tools = [];
     for (const [serverId, entry] of this.clients) {
